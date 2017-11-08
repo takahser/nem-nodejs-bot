@@ -29,13 +29,13 @@
     var BlocksAuditor = function(auditModule) {
 
         if (!auditModule || typeof auditModule.connectBlockchainSocket == 'undefined') {
-            throw "Invalid module provided to BlocksAuditor class, " +
-                "missing implementation for connectBlockchainSocket method.";
+            throw 'Invalid module provided to BlocksAuditor class, ' +
+                'missing implementation for connectBlockchainSocket method.';
         }
 
         if (typeof auditModule.disconnectBlockchainSocket == 'undefined') {
-            throw "Invalid module provided to BlocksAuditor class, " +
-                "missing implementation for disconnectBlockchainSocket method.";
+            throw 'Invalid module provided to BlocksAuditor class, ' +
+                'missing implementation for disconnectBlockchainSocket method.';
         }
 
         this.module_ = auditModule;
@@ -69,7 +69,7 @@
                 var currentHost = self.blockchain_.node_.host;
 
                 // iterate nodes and connect to first 
-                var nodesList = self.blockchain_.conf_.nem["nodes" + self.blockchain_.confSuffix];
+                var nodesList = self.blockchain_.conf_.nem['nodes' + self.blockchain_.confSuffix];
                 var nextHost = null;
                 var nextPort = null;
                 do {
@@ -81,10 +81,10 @@
                 }
                 while (nextHost == currentHost);
 
-                self.logger().info("[NEM] [" + self.module_.logLabel + "] [AUDIT]", __line, "Socket now switching to Node: " + nextHost + ":" + nextPort + ".");
+                self.logger().info('[NEM] [' + self.module_.logLabel + '] [AUDIT]', __line, 'Socket now switching to Node: ' + nextHost + ':' + nextPort + '.');
 
                 // connect to node
-                self.blockchain_.node_ = self.blockchain_.nem_.model.objects.create("endpoint")(nextHost, nextPort);
+                self.blockchain_.node_ = self.blockchain_.nem_.model.objects.create('endpoint')(nextHost, nextPort);
                 self.blockchain_.nemHost = nextHost;
                 self.blockchain_.nemPort = nextPort;
                 self.module_.blockchain_ = self.blockchain_;
@@ -109,10 +109,10 @@
 
             try {
                 // Listen on ALREADY CONNECTED SOCKET
-                self.logger().info("[NEM] [" + self.module_.logLabel + "] [AUDIT]", __line, 'subscribing to /blocks/new.');
-                self.nemSubscriptions_["/blocks/new"] = self.nemsocket_.subscribeWS("/blocks/new", function(message) {
+                self.logger().info('[NEM] [' + self.module_.logLabel + '] [AUDIT]', __line, 'subscribing to /blocks/new.');
+                self.nemSubscriptions_['/blocks/new'] = self.nemsocket_.subscribeWS('/blocks/new', function(message) {
                     var parsed = JSON.parse(message.body);
-                    self.logger().info("[NEM] [" + self.module_.logLabel + "] [AUDIT]", __line, 'new_block(' + JSON.stringify(parsed) + ')');
+                    self.logger().info('[NEM] [' + self.module_.logLabel + '] [AUDIT]', __line, 'new_block(' + JSON.stringify(parsed) + ')');
 
                     // check whether this block already exists or save
                     var bkQuery = { moduleName: self.module_.moduleName, blockHeight: parsed.height };
@@ -125,7 +125,7 @@
                             });
                             block.save(function(err) {
                                 if (err) {
-                                    self.logger().error("[NEM] [" + self.module_.logLabel + "] [AUDIT]", __line, "Error saving NEMBlockHeight object: " + err);
+                                    self.logger().error('[NEM] [' + self.module_.logLabel + '] [AUDIT]', __line, 'Error saving NEMBlockHeight object: ' + err);
                                 }
                             });
                         }
@@ -164,7 +164,7 @@
                 self.db_.NEMBlockHeight.findOne({ moduleName: self.module_.moduleName }, null, { sort: { blockHeight: -1 } }, function(err, block) {
                     if (err) {
                         // error happened
-                        self.logger().warn("[NEM] [" + self.module_.logLabel + "] [AUDIT] [ERROR]", __line, "DB Read error for NEMBlockHeight: " + err);
+                        self.logger().warn('[NEM] [' + self.module_.logLabel + '] [AUDIT] [ERROR]', __line, 'DB Read error for NEMBlockHeight: ' + err);
 
                         clearInterval(aliveInterval);
                         self.subscribeToBlockUpdates();
@@ -176,7 +176,7 @@
                     if (!block || block.createdAt <= limitAge) {
                         // need to switch node.
                         try {
-                            self.logger().warn("[NEM] [" + self.module_.logLabel + "] [AUDIT]", __line, "Socket connection lost with node: " + JSON.stringify(self.blockchain_.node_.host) + ".. Now hot-switching Node.");
+                            self.logger().warn('[NEM] [' + self.module_.logLabel + '] [AUDIT]', __line, 'Socket connection lost with node: ' + JSON.stringify(self.blockchain_.node_.host) + '.. Now hot-switching Node.');
 
                             // autoSwitchNode will also re-initialize the Block Auditor
                             clearInterval(aliveInterval);
@@ -187,14 +187,14 @@
 
                             // wait 3 seconds for websocketFallbackHandler to have received
                             // all data about the latest block using the HTTP API. 
-                            self.logger().warn("[NEM] [" + self.module_.logLabel + "] [AUDIT]", __line, "Now waiting 3 seconds before next connection attempt.");
+                            self.logger().warn('[NEM] [' + self.module_.logLabel + '] [AUDIT]', __line, 'Now waiting 3 seconds before next connection attempt.');
 
                             setTimeout(function() {
                                 // disconnect and re-connect
                                 self.autoSwitchSocketNode();
                             }, 3000);
                         } catch (e) {
-                            self.logger().error("[NEM] [" + self.module_.logLabel + "] [AUDIT]", __line, "Socket connection lost with Error: " + e);
+                            self.logger().error('[NEM] [' + self.module_.logLabel + '] [AUDIT]', __line, 'Socket connection lost with Error: ' + e);
                         }
                     }
 
@@ -221,7 +221,7 @@
                 .com.requests.chain.height(self.blockchain_.endpoint())
                 .then(function(res) {
 
-                    self.logger().info("[NEM] [" + self.module_.logLabel + "] [AUDIT-FALLBACK]", __line, 'new_block(' + JSON.stringify(res) + ')');
+                    self.logger().info('[NEM] [' + self.module_.logLabel + '] [AUDIT-FALLBACK]', __line, 'new_block(' + JSON.stringify(res) + ')');
 
                     // check whether this block already exists or create
                     var bkQuery = { moduleName: self.module_.moduleName, blockHeight: res.height };
@@ -234,13 +234,13 @@
                             });
                             block.save(function(err) {
                                 if (err) {
-                                    self.logger().error("[NEM] [" + self.module_.logLabel + "] [AUDIT]", __line, "Error saving NEMBlockHeight object: " + err);
+                                    self.logger().error('[NEM] [' + self.module_.logLabel + '] [AUDIT]', __line, 'Error saving NEMBlockHeight object: ' + err);
                                 }
                             });
                         }
                     });
                 }, function(err) {
-                    self.logger().error("[NEM] [" + self.module_.logLabel + "] [AUDIT-FALLBACK]", __line, "NIS API chain.height Error: " + JSON.stringify(err));
+                    self.logger().error('[NEM] [' + self.module_.logLabel + '] [AUDIT-FALLBACK]', __line, 'NIS API chain.height Error: ' + JSON.stringify(err));
                 });
         };
 

@@ -17,16 +17,16 @@
 
 (function() {
 
-    var nemAPI = require("nem-api");
-    var BlocksAuditor = require("./blocks-auditor.js").BlocksAuditor;
-    var SocketErrorHandler = require("./socket-error-handler.js").SocketErrorHandler;
+    var nemAPI = require('nem-api');
+    var BlocksAuditor = require('./blocks-auditor.js').BlocksAuditor;
+    var SocketErrorHandler = require('./socket-error-handler.js').SocketErrorHandler;
 
     /**
      * class MultisigCosignatory implements an example of multi signature
      * accounts co signatory bots listening to NIS Websockets and automatically
      * co-signing PRE-CONFIGURED invoices.
      *
-     * The "pre-configured" part is important in order to limit and avoid hacks
+     * The 'pre-configured' part is important in order to limit and avoid hacks
      * on the Bot's cosignatory features.
      *
      * ONLY THE BLOCKCHAIN is used for communication in this class.
@@ -52,8 +52,8 @@
 
         this.auditor_ = null;
         this.errorHandler_ = null;
-        this.moduleName = "sign-socket";
-        this.logLabel = "SIGN-SOCKET";
+        this.moduleName = 'sign-socket';
+        this.logLabel = 'SIGN-SOCKET';
         this.fallback_ = null;
 
         this.options_ = {
@@ -88,21 +88,21 @@
             instance.db_.NEMSignedTransaction.findOne({ transactionHash: trxHash }, function(err, signedTrx) {
                 if (!err && signedTrx) {
                     // transaction already signed
-                    //instance.logger().info("[NEM] [SIGN-SOCKET] [ERROR]", __line, "Transaction already signed: " + trxHash);
+                    //instance.logger().info('[NEM] [SIGN-SOCKET] [ERROR]', __line, 'Transaction already signed: ' + trxHash);
                     return false;
                 } else if (err) {
-                    instance.logger().info("[NEM] [SIGN-SOCKET] [ERROR]", __line, "Database Error with NEMSignedTransaction: " + err);
+                    instance.logger().info('[NEM] [SIGN-SOCKET] [ERROR]', __line, 'Database Error with NEMSignedTransaction: ' + err);
                     return false;
                 }
 
-                instance.logger().info("[NEM] [SIGN] ", __line, "Will sign " + trxHash + " with " + instance.blockchain_.getBotSignWallet() + " for " + instance.blockchain_.getBotSignMultisigWallet() + ".");
+                instance.logger().info('[NEM] [SIGN] ', __line, 'Will sign ' + trxHash + ' with ' + instance.blockchain_.getBotSignWallet() + ' for ' + instance.blockchain_.getBotSignMultisigWallet() + '.');
 
                 // transaction not found in database, will now issue transaction co-signing
                 // in case this transaction does not exceed the daily maximum amount.
 
-                //DEBUG instance.logger().info("[NEM] [SIGN-SOCKET] [DEBUG]", __line, "now signing transaction: " + trxHash);
+                //DEBUG instance.logger().info('[NEM] [SIGN-SOCKET] [DEBUG]', __line, 'now signing transaction: ' + trxHash);
 
-                instance.db_.NEMSignedTransaction.aggregate({ $group: { _id: null, dailyAmount: { $sum: "$amountXEM" } } }, { $project: { _id: 0, dailyAmount: 1 } },
+                instance.db_.NEMSignedTransaction.aggregate({ $group: { _id: null, dailyAmount: { $sum: '$amountXEM' } } }, { $project: { _id: 0, dailyAmount: 1 } },
                     function(err, aggregateData) {
                         // (1) verify daily maximum amount with current transaction amount
                         // - only the XEM amount can be limited for now (also looks for mosaics in case of
@@ -112,7 +112,7 @@
                         var dailyMax = instance.blockchain_.conf_.bot.sign.dailyAmount;
                         if (dailyMax > 0 && dailyAmt >= dailyMax) {
                             // reached daily limit!
-                            instance.logger().warn("[NEM] [SIGN-SOCKET] [LIMIT]", __line, "Limit of co-signatory Bot reached: " + dailyMax);
+                            instance.logger().warn('[NEM] [SIGN-SOCKET] [LIMIT]', __line, 'Limit of co-signatory Bot reached: ' + dailyMax);
                             return false;
                         }
 
@@ -120,7 +120,7 @@
 
                         if (dailyMax > 0 && dailyAmt + trxAmount > dailyMax) {
                             // can't sign this transaction, would pass daily limit.
-                            instance.logger().warn("[NEM] [SIGN-SOCKET] [LIMIT]", __line, "Limit of co-signatory Bot would be passed: " + (dailyAmt + trxAmount));
+                            instance.logger().warn('[NEM] [SIGN-SOCKET] [LIMIT]', __line, 'Limit of co-signatory Bot would be passed: ' + (dailyAmt + trxAmount));
                             return false;
                         }
 
@@ -142,7 +142,7 @@
                                     transaction.save();
                                 });
                         } catch (e) {
-                            instance.logger().error("[NEM] [SIGN-SOCKET] [ERROR]", __line, "Signing aborted: " + e);
+                            instance.logger().error('[NEM] [SIGN-SOCKET] [ERROR]', __line, 'Signing aborted: ' + e);
                         }
                     });
 
@@ -157,7 +157,7 @@
         var websocketFallbackHandler = function(instance) {
             // XXX should also check the Block Height and Last Block to know whether there CAN be new data.
 
-            instance.logger().info("[NEM] [SIGN-FALLBACK] [TRY] ", __line, "Checking unconfirmed transactions of " + instance.blockchain_.getBotSignMultisigWallet() + ".");
+            instance.logger().info('[NEM] [SIGN-FALLBACK] [TRY] ', __line, 'Checking unconfirmed transactions of ' + instance.blockchain_.getBotSignMultisigWallet() + '.');
 
             // read the payment channel recipient's incoming transaction to check whether the Websocket
             // has missed any (happens maybe only on testnet, but this is for being sure.). The same event
@@ -187,7 +187,7 @@
                         automaticTransactionSigningHandler(instance, transaction);
                     }
                 }, function(err) {
-                    instance.logger().error("[NEM] [ERROR] [SIGN-FALLBACK]", __line, "NIS API account.transactions.unconfirmed Error: " + JSON.stringify(err));
+                    instance.logger().error('[NEM] [ERROR] [SIGN-FALLBACK]', __line, 'NIS API account.transactions.unconfirmed Error: ' + JSON.stringify(err));
                 });
         };
 
@@ -202,7 +202,7 @@
 
             // initialize the socket connection with the current
             // blockchain instance connected endpoint
-            self.nemsocket_ = new api_(self.blockchain_.getNetwork().host + ":" + self.blockchain_.getNetwork().port);
+            self.nemsocket_ = new api_(self.blockchain_.getNetwork().host + ':' + self.blockchain_.getNetwork().port);
 
             self.errorHandler_ = new SocketErrorHandler(self);
 
@@ -212,22 +212,22 @@
                 // MultisigCosignatory will open
 
                 try {
-                    self.logger().info("[NEM] [SIGN-SOCKET] [CONNECT]", __line, "Connection established with node: " + JSON.stringify(self.nemsocket_.socketpt));
+                    self.logger().info('[NEM] [SIGN-SOCKET] [CONNECT]', __line, 'Connection established with node: ' + JSON.stringify(self.nemsocket_.socketpt));
 
                     // NEM Websocket Error listening
-                    self.logger().info("[NEM] [SIGN-SOCKET]", __line, 'subscribing to /errors.');
-                    self.nemSubscriptions_["/errors"] = self.nemsocket_.subscribeWS("/errors", function(message) {
-                        self.logger().error("[NEM] [SIGN-SOCKET] [ERROR]", __line, "Error Happened: " + message.body);
+                    self.logger().info('[NEM] [SIGN-SOCKET]', __line, 'subscribing to /errors.');
+                    self.nemSubscriptions_['/errors'] = self.nemsocket_.subscribeWS('/errors', function(message) {
+                        self.logger().error('[NEM] [SIGN-SOCKET] [ERROR]', __line, 'Error Happened: ' + message.body);
                     });
 
                     self.auditor_ = new BlocksAuditor(self);
 
                     // NEM Websocket unconfirmed transactions Listener
-                    var unconfirmedUri = "/unconfirmed/" + self.blockchain_.getBotSignMultisigWallet();
-                    self.logger().info("[NEM] [SIGN-SOCKET]", __line, 'subscribing to ' + unconfirmedUri + '.');
+                    var unconfirmedUri = '/unconfirmed/' + self.blockchain_.getBotSignMultisigWallet();
+                    self.logger().info('[NEM] [SIGN-SOCKET]', __line, 'subscribing to ' + unconfirmedUri + '.');
                     self.nemSubscriptions_[unconfirmedUri] = self.nemsocket_.subscribeWS(unconfirmedUri, function(message) {
                         var parsed = JSON.parse(message.body);
-                        self.logger().info("[NEM] [SIGN-SOCKET]", __line, 'unconfirmed(' + JSON.stringify(parsed) + ')');
+                        self.logger().info('[NEM] [SIGN-SOCKET]', __line, 'unconfirmed(' + JSON.stringify(parsed) + ')');
 
                         var transactionData = JSON.parse(message.body);
                         var transaction = transactionData.transaction;
@@ -244,12 +244,12 @@
                         automaticTransactionSigningHandler(self, transactionData);
                     });
 
-                    var sendUri = "/w/api/account/transfers/all";
+                    var sendUri = '/w/api/account/transfers/all';
                     //self.nemsocket_.sendWS(sendUri, {}, JSON.stringify({ account: self.blockchain_.getBotSignWallet() }));
 
                 } catch (e) {
                     // On Exception, restart connection process
-                    self.logger().error("[NEM] [ERROR]", __line, "Websocket Subscription Error: " + e);
+                    self.logger().error('[NEM] [ERROR]', __line, 'Websocket Subscription Error: ' + e);
                     self.connectBlockchainSocket();
                 }
             }, self.errorHandler_.handle);
@@ -284,7 +284,7 @@
                 }
 
                 self.nemsocket_.disconnectWS(function() {
-                    self.logger().info("[NEM] [SIGN-SOCKET] [DISCONNECT]", __line, "Websocket disconnected.");
+                    self.logger().info('[NEM] [SIGN-SOCKET] [DISCONNECT]', __line, 'Websocket disconnected.');
 
                     delete self.nemsocket_;
                     delete self.nemSubscriptions_;
@@ -296,7 +296,7 @@
                 });
             } catch (e) {
                 // hot disconnect
-                self.logger().info("[NEM] [SIGN-SOCKET] [DISCONNECT]", __line, "Websocket Hot Disconnect.");
+                self.logger().info('[NEM] [SIGN-SOCKET] [DISCONNECT]', __line, 'Websocket Hot Disconnect.');
 
                 delete self.nemsocket_;
                 delete self.nemSubscriptions_;
@@ -344,7 +344,7 @@
             // bot.sign.cosignatory.acceptFrom
                 return 3;
 
-            //DEBUG self.logger().info("[NEM] [DEBUG] ", __line, 'Now verifying transaction "' + trxHash + '" with signature "' + trxSignature + '" and initiator "' + trxInitiatorPubKey + '"');
+            //DEBUG self.logger().info('[NEM] [DEBUG] ', __line, 'Now verifying transaction '' + trxHash + '' with signature '' + trxSignature + '' and initiator '' + trxInitiatorPubKey + ''');
 
             // check transaction signature with initiator public key
 
@@ -367,7 +367,7 @@
             var self = this;
             var cosigs = self.config().bot.sign.cosignatory.acceptFrom;
 
-            if (typeof cosigs == "string")
+            if (typeof cosigs == 'string')
                 return cosigs === cosigPubKey;
 
             for (var i in cosigs) {
@@ -404,7 +404,7 @@
             var multisigWallet = self.blockchain_.getBotSignMultisigWallet();
 
             if (!self.blockchain_.nem_.utils.helpers.isPrivateKeyValid(privateKey)) {
-                throw "Invalid private key in bot.json, Please fix to start co-signing NEM blockchain transactions.";
+                throw 'Invalid private key in bot.json, Please fix to start co-signing NEM blockchain transactions.';
             }
 
             // (2) verify transaction validity on the blockchain
@@ -419,39 +419,39 @@
             // (3) transaction is genuine and was not tampered with, we can now sign it too.
 
             // prepare signature transaction
-            var commonPair = self.blockchain_.nem_.model.objects.create("common")("", privateKey);
+            var commonPair = self.blockchain_.nem_.model.objects.create('common')('', privateKey);
             var networkId = self.blockchain_.getNetwork().config.id;
-            var signTx = self.blockchain_.nem_.model.objects.create("signatureTransaction")(multisigWallet, trxHash);
-            var prepared = self.blockchain_.nem_.model.transactions.prepare("signatureTransaction")(commonPair, signTx, networkId);
+            var signTx = self.blockchain_.nem_.model.objects.create('signatureTransaction')(multisigWallet, trxHash);
+            var prepared = self.blockchain_.nem_.model.transactions.prepare('signatureTransaction')(commonPair, signTx, networkId);
 
             // sign signature transaction and serialize
             var secretPair = self.blockchain_.nem_.crypto.keyPair.create(privateKey);
             var serialized = self.blockchain_.nem_.utils.serialization.serializeTransaction(prepared);
             var signature = secretPair.sign(serialized);
             var broadcastable = JSON.stringify({
-                "data": self.blockchain_.nem_.utils.convert.ua2hex(serialized),
-                "signature": signature.toString()
+                'data': self.blockchain_.nem_.utils.convert.ua2hex(serialized),
+                'signature': signature.toString()
             });
 
-            //DEBUG self.logger().info("[NEM] [DEBUG] ", __line, 'Transaction "' + trxHash + '" signed: "' + signature.toString() + '"');
+            //DEBUG self.logger().info('[NEM] [DEBUG] ', __line, 'Transaction '' + trxHash + '' signed: '' + signature.toString() + ''');
 
             // (4) broadcast signed signature transaction, work done for this NEMBot.
             self.blockchain_.nem().com.requests
                 .transaction.announce(self.blockchain_.endpoint(), broadcastable)
                 .then(function(res) {
-                    //DEBUG self.logger().info("[NEM] [SIGN-SOCKET]", __line, 'Transaction Annouce Response: "' + JSON.stringify(res));
+                    //DEBUG self.logger().info('[NEM] [SIGN-SOCKET]', __line, 'Transaction Annouce Response: '' + JSON.stringify(res));
 
                     if (res.code >= 2) {
-                        self.blockchain_.logger().error("[NEM] [SIGN-SOCKET] [ERROR]", __line, "Error announcing transaction: " + res.message);
-                    } else if ("SUCCESS" == res.message) {
+                        self.blockchain_.logger().error('[NEM] [SIGN-SOCKET] [ERROR]', __line, 'Error announcing transaction: ' + res.message);
+                    } else if ('SUCCESS' == res.message) {
                         // transaction broadcast successfully.
 
-                        self.logger().info("[NEM] [SIGN-SOCKET]", __line, 'Transaction co-signed and broadcast: "' + trxHash + '" with response: "' + res.message + '".');
+                        self.logger().info('[NEM] [SIGN-SOCKET]', __line, 'Transaction co-signed and broadcast: '' + trxHash + '' with response: '' + res.message + ''.');
                         callback(res);
                     }
-                    // "NEUTRAL" will not trigger callback
+                    // 'NEUTRAL' will not trigger callback
                 }, function(err) {
-                    self.logger().error("[NEM] [SIGN-SOCKET] [ERROR]", __line, "Signing error: " + err);
+                    self.logger().error('[NEM] [SIGN-SOCKET] [ERROR]', __line, 'Signing error: ' + err);
                 });
         };
 

@@ -17,9 +17,9 @@
 
 (function() {
 
-    var nemAPI = require("nem-api");
-    var BlocksAuditor = require("./blocks-auditor.js").BlocksAuditor;
-    var SocketErrorHandler = require("./socket-error-handler.js").SocketErrorHandler;
+    var nemAPI = require('nem-api');
+    var BlocksAuditor = require('./blocks-auditor.js').BlocksAuditor;
+    var SocketErrorHandler = require('./socket-error-handler.js').SocketErrorHandler;
 
     /**
      * class PaymentProcessor implements a simple payment processor using the
@@ -55,8 +55,8 @@
 
         this.auditor_ = null;
         this.errorHandler_ = null;
-        this.moduleName = "pay-socket";
-        this.logLabel = "PAY-SOCKET";
+        this.moduleName = 'pay-socket';
+        this.logLabel = 'PAY-SOCKET';
 
         this.options_ = {
             mandatoryMessage: true
@@ -94,14 +94,14 @@
                 forwardToSocket = instance.socketById[backendSocketId];
             } else
                 forwardToSocket = backendSocketId;
-            //DEBUG instance.logger().warn("[NEM] [WARNING]", __line, 'no backend socket available for Socket ID "' + backendSocketId + '"!');
+            //DEBUG instance.logger().warn('[NEM] [WARNING]', __line, 'no backend socket available for Socket ID '' + backendSocketId + ''!');
 
             // save this transaction in our history
             instance.db_.NEMPaymentChannel
                 .acknowledgeTransaction(paymentChannel, transactionMetaDataPair, status, function(paymentChannel) {
                     if (paymentChannel !== false) {
                         // transaction has just been processed by acknowledgeTransaction!
-                        instance.logger().info("[NEM] [TRX] [" + trxGateway + "] ", __line, 'Identified Relevant ' + status + ' Transaction for "' + invoice + '" with hash "' + trxHash + '" forwarded to "' + backendSocketId + '"');
+                        instance.logger().info('[NEM] [TRX] [' + trxGateway + '] ', __line, 'Identified Relevant ' + status + ' Transaction for '' + invoice + '' with hash '' + trxHash + '' forwarded to '' + backendSocketId + ''');
 
                         // Payment is relevant - emit back payment status update
                         instance.emitPaymentUpdate(forwardToSocket, paymentChannel, status);
@@ -119,7 +119,7 @@
                 // we can now fetch all DB entries for the fetched transactions
                 // in order to be able to match transactions to Invoices.
                 var query = {
-                    status: "confirmed",
+                    status: 'confirmed',
                     transactionHash: {
                         $in: Object.getOwnPropertyNames(instance.transactionPool)
                     }
@@ -127,7 +127,7 @@
 
                 instance.db_.NEMTransactionPool.find(query, function(err, entries) {
                         if (err) {
-                            instance.logger().error("[NEM] [ERROR] [PAY-FALLBACK]", __line, "Error reading NEMTransactionPool: " + err);
+                            instance.logger().error('[NEM] [ERROR] [PAY-FALLBACK]', __line, 'Error reading NEMTransactionPool: ' + err);
                             // error happened
                             return false;
                         }
@@ -151,7 +151,7 @@
                                 return false;
                         }
 
-                        //DEBUG instance.logger().info("[NEM] [PAY-FALLBACK] [TRY] ", __line, "trying to match " + unprocessed.length + " unprocessed transactions from " + instance.blockchain_.getBotReadWallet() + ".");
+                        //DEBUG instance.logger().info('[NEM] [PAY-FALLBACK] [TRY] ', __line, 'trying to match ' + unprocessed.length + ' unprocessed transactions from ' + instance.blockchain_.getBotReadWallet() + '.');
 
                         for (var j = 0; j < unprocessed.length; j++) {
                             var trxHash = unprocessed[j];
@@ -161,7 +161,7 @@
                                 continue;
 
                             var creation = new self.db_.NEMTransactionPool({
-                                status: "confirmed",
+                                status: 'confirmed',
                                 transactionHash: trxHash,
                                 createdAt: new Date().valueOf()
                             });
@@ -169,13 +169,13 @@
 
                             instance.db_.NEMPaymentChannel.matchTransactionToChannel(instance.blockchain_, transaction, function(paymentChannel, trx) {
                                 if (paymentChannel !== false) {
-                                    websocketChannelTransactionHandler(instance, paymentChannel, trx, "confirmed", "PAY-FALLBACK");
+                                    websocketChannelTransactionHandler(instance, paymentChannel, trx, 'confirmed', 'PAY-FALLBACK');
                                 }
                             });
                         }
                     },
                     function(err) {
-                        instance.logger().error("[NEM] [PAY-FALLBACK] [ERROR] ", __line, "Error reading NEMTransactionPool: " + err);
+                        instance.logger().error('[NEM] [PAY-FALLBACK] [ERROR] ', __line, 'Error reading NEMTransactionPool: ' + err);
                     });
             });
         };
@@ -191,7 +191,7 @@
 
             // initialize the socket connection with the current
             // blockchain instance connected endpoint
-            self.nemsocket_ = new api_(self.blockchain_.getNetwork().host + ":" + self.blockchain_.getNetwork().port);
+            self.nemsocket_ = new api_(self.blockchain_.getNetwork().host + ':' + self.blockchain_.getNetwork().port);
 
             self.errorHandler_ = new SocketErrorHandler(self);
 
@@ -201,28 +201,28 @@
                 // PaymentProcessor will open
                 try {
                     self.logger()
-                        .info("[NEM] [PAY-SOCKET] [CONNECT]", __line,
-                            "Connection established with node: " + JSON.stringify(self.nemsocket_.socketpt));
+                        .info('[NEM] [PAY-SOCKET] [CONNECT]', __line,
+                            'Connection established with node: ' + JSON.stringify(self.nemsocket_.socketpt));
 
                     // NEM Websocket Error listening
-                    self.logger().info("[NEM] [PAY-SOCKET]", __line, 'subscribing to /errors.');
-                    self.nemSubscriptions_["/errors"] = self.nemsocket_.subscribeWS("/errors", function(message) {
+                    self.logger().info('[NEM] [PAY-SOCKET]', __line, 'subscribing to /errors.');
+                    self.nemSubscriptions_['/errors'] = self.nemsocket_.subscribeWS('/errors', function(message) {
                         self.logger()
-                            .error("[NEM] [PAY-SOCKET] [ERROR]", __line,
-                                "Error Happened: " + message.body);
+                            .error('[NEM] [PAY-SOCKET] [ERROR]', __line,
+                                'Error Happened: ' + message.body);
                     });
 
                     self.auditor_ = new BlocksAuditor(self);
 
-                    var unconfirmedUri = "/unconfirmed/" + self.blockchain_.getBotReadWallet();
-                    var confirmedUri = "/transactions/" + self.blockchain_.getBotReadWallet();
-                    var sendUri = "/w/api/account/transfers/all";
+                    var unconfirmedUri = '/unconfirmed/' + self.blockchain_.getBotReadWallet();
+                    var confirmedUri = '/transactions/' + self.blockchain_.getBotReadWallet();
+                    var sendUri = '/w/api/account/transfers/all';
 
                     // NEM Websocket unconfirmed transactions Listener
-                    self.logger().info("[NEM] [PAY-SOCKET]", __line, 'subscribing to /unconfirmed/' + self.blockchain_.getBotReadWallet() + '.');
+                    self.logger().info('[NEM] [PAY-SOCKET]', __line, 'subscribing to /unconfirmed/' + self.blockchain_.getBotReadWallet() + '.');
                     self.nemSubscriptions_[unconfirmedUri] = self.nemsocket_.subscribeWS(unconfirmedUri, function(message) {
                         var parsed = JSON.parse(message.body);
-                        self.logger().info("[NEM] [PAY-SOCKET]", __line, 'unconfirmed(' + JSON.stringify(parsed) + ')');
+                        self.logger().info('[NEM] [PAY-SOCKET]', __line, 'unconfirmed(' + JSON.stringify(parsed) + ')');
 
                         var transactionData = JSON.parse(message.body);
                         var trxHash = self.blockchain_.getTransactionHash(transactionData);
@@ -233,7 +233,7 @@
                                 return false;
 
                             var creation = new self.db_.NEMTransactionPool({
-                                status: "unconfirmed",
+                                status: 'unconfirmed',
                                 transactionHash: trxHash,
                                 createdAt: new Date().valueOf()
                             });
@@ -241,29 +241,29 @@
 
                             self.db_.NEMPaymentChannel.matchTransactionToChannel(self.blockchain_, transactionData, function(paymentChannel) {
                                 if (paymentChannel !== false) {
-                                    websocketChannelTransactionHandler(self, paymentChannel, transactionData, "unconfirmed", "SOCKET");
+                                    websocketChannelTransactionHandler(self, paymentChannel, transactionData, 'unconfirmed', 'SOCKET');
                                 }
                             });
                         });
                     });
 
                     // NEM Websocket confirmed transactions Listener
-                    self.logger().info("[NEM] [PAY-SOCKET]", __line, 'subscribing to /transactions/' + self.blockchain_.getBotReadWallet() + '.');
+                    self.logger().info('[NEM] [PAY-SOCKET]', __line, 'subscribing to /transactions/' + self.blockchain_.getBotReadWallet() + '.');
                     self.nemSubscriptions_[confirmedUri] = self.nemsocket_.subscribeWS(confirmedUri, function(message) {
                         var parsed = JSON.parse(message.body);
-                        self.logger().info("[NEM] [PAY-SOCKET]", __line, 'transactions(' + JSON.stringify(parsed) + ')');
+                        self.logger().info('[NEM] [PAY-SOCKET]', __line, 'transactions(' + JSON.stringify(parsed) + ')');
 
                         var transactionData = JSON.parse(message.body);
                         var trxHash = self.blockchain_.getTransactionHash(transactionData);
 
-                        // this time also include "status" filtering.
-                        self.db_.NEMTransactionPool.findOne({ status: "confirmed", transactionHash: trxHash }, function(err, entry) {
+                        // this time also include 'status' filtering.
+                        self.db_.NEMTransactionPool.findOne({ status: 'confirmed', transactionHash: trxHash }, function(err, entry) {
                             if (err || entry)
                             // error OR entry FOUND => transaction not processed this time.
                                 return false;
 
                             var creation = new self.db_.NEMTransactionPool({
-                                status: "confirmed",
+                                status: 'confirmed',
                                 transactionHash: trxHash,
                                 createdAt: new Date().valueOf()
                             });
@@ -271,7 +271,7 @@
 
                             self.db_.NEMPaymentChannel.matchTransactionToChannel(self.blockchain_, transactionData, function(paymentChannel) {
                                 if (paymentChannel !== false) {
-                                    websocketChannelTransactionHandler(self, paymentChannel, transactionData, "confirmed", "SOCKET");
+                                    websocketChannelTransactionHandler(self, paymentChannel, transactionData, 'confirmed', 'SOCKET');
                                 }
                             });
                         });
@@ -308,7 +308,7 @@
                 }
 
                 self.nemsocket_.disconnectWS(function() {
-                    self.logger().info("[NEM] [PAY-SOCKET] [DISCONNECT]", __line, "Websocket disconnected.");
+                    self.logger().info('[NEM] [PAY-SOCKET] [DISCONNECT]', __line, 'Websocket disconnected.');
 
                     delete self.nemsocket_;
                     delete self.nemSubscriptions_;
@@ -320,7 +320,7 @@
                 });
             } catch (e) {
                 // hot disconnect
-                self.logger().info("[NEM] [SIGN-SOCKET] [DISCONNECT]", __line, "Websocket Hot Disconnect.");
+                self.logger().info('[NEM] [SIGN-SOCKET] [DISCONNECT]', __line, 'Websocket Hot Disconnect.');
 
                 delete self.nemsocket_;
                 delete self.nemSubscriptions_;
@@ -346,7 +346,7 @@
          * @return {NEMPaymentChannel}
          */
         this.forwardPaymentUpdates = function(forwardedToSocket, paymentChannel, params) {
-            //DEBUG this.logger().info("[BOT] [DEBUG] [" + forwardedToSocket.id + "]", __line, "forwardPaymentUpdates(" + JSON.stringify(params) + ")");
+            //DEBUG this.logger().info('[BOT] [DEBUG] [' + forwardedToSocket.id + ']', __line, 'forwardPaymentUpdates(' + JSON.stringify(params) + ')');
 
             // register socket to make sure also websockets events can be forwarded.
             if (!this.socketById.hasOwnProperty(forwardedToSocket.id)) {
@@ -368,7 +368,7 @@
             // ONLY IN CASE THE BLOCKS WEBSOCKET HAS NOT FILLED DATA FOR
             // 5 MINUTES ANYMORE (meaning the websocket connection is buggy).
             var fallbackInterval = setInterval(function() {
-                self.db_.NEMBlockHeight.find({ moduleName: "pay-socket" }, [], { limit: 1, sort: { createdAt: -1 } }, function(err, lastBlock) {
+                self.db_.NEMBlockHeight.find({ moduleName: 'pay-socket' }, [], { limit: 1, sort: { createdAt: -1 } }, function(err, lastBlock) {
                     var nowTime = new Date().valueOf();
                     if (lastBlock.createdAt < (nowTime - 5 * 60 * 1000)) {
                         // last block is 5 minutes old, use the FALLBACK!
@@ -399,17 +399,17 @@
             var eventData = paymentChannel.toDict();
 
             // notify our socket about the update (private communication NEMBot > Backend)
-            if (typeof forwardToSocket == "object") {
-                forwardToSocket.emit("nembot_payment_status_update", JSON.stringify(eventData));
-                this.logger().info("[BOT] [" + forwardToSocket.id + "]", __line, "payment_status_update(" + JSON.stringify(eventData) + ")");
-            } else if (typeof forwardToSocket == "string") {
+            if (typeof forwardToSocket == 'object') {
+                forwardToSocket.emit('nembot_payment_status_update', JSON.stringify(eventData));
+                this.logger().info('[BOT] [' + forwardToSocket.id + ']', __line, 'payment_status_update(' + JSON.stringify(eventData) + ')');
+            } else if (typeof forwardToSocket == 'string') {
                 // no socket OBJECT available - send to socket ID
 
                 this.blockchain_.getCliSocketIo()
                     .to(forwardToSocket)
-                    .emit("nembot_payment_status_update", JSON.stringify(eventData));
+                    .emit('nembot_payment_status_update', JSON.stringify(eventData));
 
-                this.logger().info("[BOT] [" + forwardToSocket + "]", __line, "payment_status_update(" + JSON.stringify(eventData) + ")");
+                this.logger().info('[BOT] [' + forwardToSocket + ']', __line, 'payment_status_update(' + JSON.stringify(eventData) + ')');
             }
 
             return paymentChannel;
@@ -436,8 +436,8 @@
                 .com.requests.account.transactions
                 .incoming(self.blockchain_.endpoint(), self.blockchain_.getBotReadWallet(), null, lastTrxRead)
                 .then(function(res) {
-                    //DEBUG self.logger().info("[DEBUG]", "[PACNEM CREDITS]", "Result from NIS API account.transactions.incoming: " + JSON.stringify(res.data));
-                    //DEBUG self.logger().info("[DEBUG]", "[PACNEM CREDITS]", "Result from NIS API account.transactions.incoming: " + res.data.length + " Transactions.");
+                    //DEBUG self.logger().info('[DEBUG]', '[PACNEM CREDITS]', 'Result from NIS API account.transactions.incoming: ' + JSON.stringify(res.data));
+                    //DEBUG self.logger().info('[DEBUG]', '[PACNEM CREDITS]', 'Result from NIS API account.transactions.incoming: ' + res.data.length + ' Transactions.');
                     res = res.data;
                     var transactions = res;
 
@@ -456,11 +456,11 @@
                     if (callback && (lastTrxRead === false || transactions.length < 25)) {
                         // done reading blockchain.
 
-                        self.logger().info("[NEM] [PAY-FALLBACK] ", __line, "read a total of " + Object.getOwnPropertyNames(self.transactionPool).length + " transactions from " + self.blockchain_.getBotReadWallet() + ".");
+                        self.logger().info('[NEM] [PAY-FALLBACK] ', __line, 'read a total of ' + Object.getOwnPropertyNames(self.transactionPool).length + ' transactions from ' + self.blockchain_.getBotReadWallet() + '.');
                         callback(self);
                     }
                 }, function(err) {
-                    self.logger().error("[NEM] [ERROR] [PAY-FALLBACK]", __line, "NIS API account.transactions.incoming Error: " + err);
+                    self.logger().error('[NEM] [ERROR] [PAY-FALLBACK]', __line, 'NIS API account.transactions.incoming Error: ' + err);
                 });
         };
 

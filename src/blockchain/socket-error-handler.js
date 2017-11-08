@@ -17,7 +17,7 @@
 
 (function() {
 
-    var BlocksAuditor = require("./blocks-auditor.js").BlocksAuditor;
+    var BlocksAuditor = require('./blocks-auditor.js').BlocksAuditor;
 
     /**
      * class SocketErrorHandler implements a simple websocket error handler
@@ -29,13 +29,13 @@
     var SocketErrorHandler = function(auditModule) {
 
         if (!auditModule || typeof auditModule.connectBlockchainSocket == 'undefined') {
-            throw "Invalid module provided to SocketErrorHandler class, " +
-                "missing implementation for connectBlockchainSocket method.";
+            throw 'Invalid module provided to SocketErrorHandler class, ' +
+                'missing implementation for connectBlockchainSocket method.';
         }
 
         if (typeof auditModule.disconnectBlockchainSocket == 'undefined') {
-            throw "Invalid module provided to SocketErrorHandler class, " +
-                "missing implementation for disconnectBlockchainSocket method.";
+            throw 'Invalid module provided to SocketErrorHandler class, ' +
+                'missing implementation for disconnectBlockchainSocket method.';
         }
 
         this.module_ = auditModule;
@@ -75,7 +75,7 @@
                 //XXX count reconnects max 3
 
                 self.logger()
-                    .warn("[NEM] [" + self.module_.logLabel + "] [DROP]", __line, "Connection lost with node: " + JSON.stringify(self.nemsocket_.socketpt) + ".. Now re-connecting.");
+                    .warn('[NEM] [' + self.module_.logLabel + '] [DROP]', __line, 'Connection lost with node: ' + JSON.stringify(self.nemsocket_.socketpt) + '.. Now re-connecting.');
 
                 self.module_.connectBlockchainSocket();
                 return true;
@@ -83,7 +83,7 @@
                 // ECONNREFUSED|ETIMEOUT => switch node
 
                 self.logger()
-                    .warn("[NEM] [" + self.module_.logLabel + "] [DROP]", __line, "Connection impossible with node: " + JSON.stringify(self.nemsocket_.socketpt) + ".. Now switching.");
+                    .warn('[NEM] [' + self.module_.logLabel + '] [DROP]', __line, 'Connection impossible with node: ' + JSON.stringify(self.nemsocket_.socketpt) + '.. Now switching.');
 
                 var auditor = self.module_.getAuditor();
                 if (!auditor) auditor = new BlockAuditor(self.module_);
@@ -93,7 +93,7 @@
 
             // uncaught error happened
             self.logger()
-                .error("[NEM] [" + self.module_.logLabel + "] [ERROR]", __line, "Uncaught Error: " + error);
+                .error('[NEM] [' + self.module_.logLabel + '] [ERROR]', __line, 'Uncaught Error: ' + error);
         };
 
         var self = this;

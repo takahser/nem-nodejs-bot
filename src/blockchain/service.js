@@ -17,11 +17,11 @@
 
 (function() {
 
-    var nemSDK = require("nem-sdk").default,
-        nemAPI = require("nem-api"),
-        PaymentProcessor = require("./payment-processor.js").PaymentProcessor,
-        MultisigCosignatory = require("./multisig-cosignatory.js").MultisigCosignatory,
-        BlocksAuditor = require("./blocks-auditor.js").BlocksAuditor;
+    var nemSDK = require('nem-sdk').default,
+        nemAPI = require('nem-api'),
+        PaymentProcessor = require('./payment-processor.js').PaymentProcessor,
+        MultisigCosignatory = require('./multisig-cosignatory.js').MultisigCosignatory,
+        BlocksAuditor = require('./blocks-auditor.js').BlocksAuditor;
 
     /**
      * class service provide a business layer for
@@ -41,34 +41,34 @@
         this.cliSocketIo_ = null;
 
         this.isTestMode = config.nem.isTestMode;
-        this.envSuffix = this.isTestMode ? "_TEST" : "";
-        this.confSuffix = this.isTestMode ? "_test" : "";
+        this.envSuffix = this.isTestMode ? '_TEST' : '';
+        this.confSuffix = this.isTestMode ? '_test' : '';
 
         // connect to the blockchain with the NEM SDK
-        this.nemHost = process.env["NEM_HOST" + this.envSuffix] || this.conf_.nem["nodes" + this.confSuffix][0].host;
-        this.nemPort = process.env["NEM_PORT" + this.envSuffix] || this.conf_.nem["nodes" + this.confSuffix][0].port;
-        this.node_ = this.nem_.model.objects.create("endpoint")(this.nemHost, this.nemPort);
+        this.nemHost = process.env['NEM_HOST' + this.envSuffix] || this.conf_.nem['nodes' + this.confSuffix][0].host;
+        this.nemPort = process.env['NEM_PORT' + this.envSuffix] || this.conf_.nem['nodes' + this.confSuffix][0].port;
+        this.node_ = this.nem_.model.objects.create('endpoint')(this.nemHost, this.nemPort);
 
         // following is our bot's XEM wallet address
-        this.botMode_ = process.env["BOT_MODE"] || this.conf_.bot.mode;
-        this.botReadWallet_ = (process.env["BOT_READ_WALLET"] || this.conf_.bot.read.walletAddress).replace(/-/g, "");
-        this.botSignMultisig_ = (process.env["BOT_MULTISIG_WALLET"] || this.conf_.bot.sign.multisigAddress).replace(/-/g, "");
-        this.botSignWallet_ = (process.env["BOT_SIGN_WALLET"] || this.conf_.bot.sign.cosignatory.walletAddress).replace(/-/g, "");
-        this.botTipperWallet_ = (process.env["BOT_TIPPER_WALLET"] || this.conf_.bot.tipper.walletAddress).replace(/-/g, "");
+        this.botMode_ = process.env['BOT_MODE'] || this.conf_.bot.mode;
+        this.botReadWallet_ = (process.env['BOT_READ_WALLET'] || this.conf_.bot.read.walletAddress).replace(/-/g, '');
+        this.botSignMultisig_ = (process.env['BOT_MULTISIG_WALLET'] || this.conf_.bot.sign.multisigAddress).replace(/-/g, '');
+        this.botSignWallet_ = (process.env['BOT_SIGN_WALLET'] || this.conf_.bot.sign.cosignatory.walletAddress).replace(/-/g, '');
+        this.botTipperWallet_ = (process.env['BOT_TIPPER_WALLET'] || this.conf_.bot.tipper.walletAddress).replace(/-/g, '');
 
         this.paymentProcessor_ = undefined;
         this.multisigCosignatory_ = undefined;
 
         // define a helper for development debug of websocket
         this.socketLog = function(msg, type) {
-            var logMsg = "[" + type + "] " + msg;
-            this.logger_.info("src/blockchain/service.js", __line, logMsg);
+            var logMsg = '[' + type + '] ' + msg;
+            this.logger_.info('src/blockchain/service.js', __line, logMsg);
         };
 
         // define a helper for ERROR of websocket
         this.socketError = function(msg, type) {
-            var logMsg = "[" + type + "] " + msg;
-            this.logger_.error("src/blockchain/service.js", __line, logMsg);
+            var logMsg = '[' + type + '] ' + msg;
+            this.logger_.error('src/blockchain/service.js', __line, logMsg);
         };
 
         this.nem = function() {
@@ -84,12 +84,12 @@
         };
 
         this.isMode = function(mode) {
-            if (typeof this.conf_.bot.mode == "string")
-                return this.conf_.bot.mode == mode || this.conf_.bot.mode == "all";
+            if (typeof this.conf_.bot.mode == 'string')
+                return this.conf_.bot.mode == mode || this.conf_.bot.mode == 'all';
 
             for (var i in this.conf_.bot.mode) {
                 var current = this.conf_.bot.mode[i];
-                if (mode == current || "all" == current)
+                if (mode == current || 'all' == current)
                     return true;
             }
 
@@ -97,15 +97,15 @@
         };
 
         this.isReadBot = function() {
-            return this.isMode("read");
+            return this.isMode('read');
         };
 
         this.isSignBot = function() {
-            return this.isMode("sign");
+            return this.isMode('sign');
         };
 
         this.isTipperBot = function() {
-            return this.isMode("tip");
+            return this.isMode('tip');
         };
 
         /**
@@ -148,7 +148,7 @@
          * @return string   XEM account address for the Bot
          */
         this.getBotSignSecret = function() {
-            var pkey = (process.env["BOT_SIGN_PKEY"] || this.conf_.bot.sign.cosignatory.privateKey);
+            var pkey = (process.env['BOT_SIGN_PKEY'] || this.conf_.bot.sign.cosignatory.privateKey);
             return pkey;
         };
 
@@ -175,12 +175,12 @@
             var isMijin = this.conf_.nem.isMijin;
 
             return {
-                "host": this.node_.host,
-                "port": this.node_.port,
-                "label": isTest ? "Testnet" : isMijin ? "Mijin" : "Mainnet",
-                "config": isTest ? this.nem_.model.network.data.testnet : isMijin ? this.nem_.model.network.data.mijin : this.nem_.model.network.data.mainnet,
-                "isTest": isTest,
-                "isMijin": isMijin
+                'host': this.node_.host,
+                'port': this.node_.port,
+                'label': isTest ? 'Testnet' : isMijin ? 'Mijin' : 'Mainnet',
+                'config': isTest ? this.nem_.model.network.data.testnet : isMijin ? this.nem_.model.network.data.mijin : this.nem_.model.network.data.mainnet,
+                'isTest': isTest,
+                'isMijin': isMijin
             };
         };
 
@@ -285,8 +285,8 @@
             var realContent = isMultiSig ? content.otherTrans : content;
             var isMosaic = realContent.mosaics && realContent.mosaics.length > 0;
 
-            var lookupNS = mosaicSlug.replace(/:[^:]+$/, "");
-            var lookupMos = mosaicSlug.replace(/^[^:]+:/, "");
+            var lookupNS = mosaicSlug.replace(/:[^:]+$/, '');
+            var lookupMos = mosaicSlug.replace(/^[^:]+:/, '');
 
             if (isMosaic) {
                 // read mosaics to find XEM, `content.amount` is now a multiplier!
@@ -376,15 +376,15 @@
 
             if (!trxRealData.message || !trxRealData.message.payload)
             // no message found in transaction
-                return "";
+                return '';
 
-            //DEBUG logger_.info("[DEBUG]", "[BLOCKCHAIN]", "Reading following message: " + JSON.stringify(trxRealData.message));
+            //DEBUG logger_.info('[DEBUG]', '[BLOCKCHAIN]', 'Reading following message: ' + JSON.stringify(trxRealData.message));
 
             // decode transaction message and job done
             var payload = trxRealData.message.payload;
             var plain = this.nem().utils.convert.hex2a(payload);
 
-            //DEBUG logger_.info("[DEBUG]", "[BLOCKCHAIN]", "Message Read: " + JSON.stringify(plain));
+            //DEBUG logger_.info('[DEBUG]', '[BLOCKCHAIN]', 'Message Read: ' + JSON.stringify(plain));
 
             return plain;
         };

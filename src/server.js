@@ -19,9 +19,9 @@
 
     var app = require('express')(),
         server = require('http').createServer(app),
-        auth = require("http-auth"),
-        bodyParser = require("body-parser"),
-        fs = require("fs"),
+        auth = require('http-auth'),
+        bodyParser = require('body-parser'),
+        fs = require('fs'),
         io = require('socket.io').listen(server);
 
     // configure database layer
@@ -30,7 +30,7 @@
     var NEMBot = function(config, logger, chainDataLayer) {
         this.config_ = config;
         this.blockchain_ = chainDataLayer;
-        this.environment_ = process.env["APP_ENV"] || "development";
+        this.environment_ = process.env['APP_ENV'] || 'development';
 
         this.db = new models.NEMBotDB(config, io, chainDataLayer);
 
@@ -39,11 +39,11 @@
 
         // define a helper for development debug of requests
         this.serverLog = function(req, msg, type) {
-            var logMsg = "[" + type + "] " + msg + " (" + (req.headers ? req.headers['x-forwarded-for'] : "?") + " - " +
-                (req.connection ? req.connection.remoteAddress : "?") + " - " +
-                (req.socket ? req.socket.remoteAddress : "?") + " - " +
-                (req.connection && req.connection.socket ? req.connection.socket.remoteAddress : "?") + ")";
-            logger.info("NEMBot", __line, logMsg);
+            var logMsg = '[' + type + '] ' + msg + ' (' + (req.headers ? req.headers['x-forwarded-for'] : '?') + ' - ' +
+                (req.connection ? req.connection.remoteAddress : '?') + ' - ' +
+                (req.socket ? req.socket.remoteAddress : '?') + ' - ' +
+                (req.connection && req.connection.socket ? req.connection.socket.remoteAddress : '?') + ')';
+            logger.info('NEMBot', __line, logMsg);
         };
 
         /**
@@ -51,7 +51,7 @@
          * the configuration file can be decrypted.
          *
          * Following is where we set our Bot's API endpoints. The API
-         * routes list will change according to the Bot's "mode" config
+         * routes list will change according to the Bot's 'mode' config
          * value.
          */
         this.initBotAPI = function(config) {
@@ -64,13 +64,13 @@
                 // add Basic HTTP auth using nem-bot.htpasswd file
 
                 var basicAuth = auth.basic({
-                    realm: "This is a Highly Secured Area - Monkey at Work.",
-                    file: __dirname + "/../nem-bot.htpasswd"
+                    realm: 'This is a Highly Secured Area - Monkey at Work.',
+                    file: __dirname + '/../nem-bot.htpasswd'
                 });
                 app.use(auth.connect(basicAuth));
             }
 
-            var package = fs.readFileSync("package.json");
+            var package = fs.readFileSync('package.json');
             var botPackage = JSON.parse(package);
 
             /**
@@ -79,42 +79,42 @@
              * Following routes are used for handling the business/data
              * layer provided by this NEM Bot.
              */
-            app.get("/api/v1/ping", function(req, res) {
+            app.get('/api/v1/ping', function(req, res) {
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify({ time: new Date().valueOf() }));
             });
 
-            app.get("/api/v1/version", function(req, res) {
+            app.get('/api/v1/version', function(req, res) {
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify({ version: botPackage.version }));
             });
 
             if (self.blockchain_.isReadBot()) {
-                // This NEMBot has "read" mode enabled, which means it may be
+                // This NEMBot has 'read' mode enabled, which means it may be
                 // listening to payment channels configured from your backend.
 
-                app.get("/api/v1/channels", function(req, res) {
+                app.get('/api/v1/channels', function(req, res) {
                     res.setHeader('Content-Type', 'application/json');
 
                     self.db.NEMPaymentChannel.find({}, function(err, channels) {
-                        if (err) return res.send(JSON.stringify({ "status": "error", "message": err }));
+                        if (err) return res.send(JSON.stringify({ 'status': 'error', 'message': err }));
 
                         var responseData = {};
-                        responseData.status = "ok";
+                        responseData.status = 'ok';
                         responseData.data = channels;
 
                         return res.send(JSON.stringify(responseData));
                     });
                 });
 
-                app.get("/api/v1/transactions", function(req, res) {
+                app.get('/api/v1/transactions', function(req, res) {
                     res.setHeader('Content-Type', 'application/json');
 
                     self.db.NEMSignedTransaction.find({}, function(err, signedTrxs) {
-                        if (err) return res.send(JSON.stringify({ "status": "error", "message": err }));
+                        if (err) return res.send(JSON.stringify({ 'status': 'error', 'message': err }));
 
                         var responseData = {};
-                        responseData.status = "ok";
+                        responseData.status = 'ok';
                         responseData.data = signedTrxs;
 
                         return res.send(JSON.stringify(responseData));
@@ -122,7 +122,7 @@
                 });
 
                 //XXX will be removed or secured
-                app.get("/api/v1/reset", function(req, res) {
+                app.get('/api/v1/reset', function(req, res) {
                     res.setHeader('Content-Type', 'application/json');
 
                     self.db.NEMPaymentChannel.remove({});
@@ -149,40 +149,40 @@
             var port = process.env['PORT'] = process.env.PORT || self.config_.bot.connection.port || 29081;
             server.listen(port, function() {
                 var network = self.blockchain_.getNetwork();
-                var blockchain = network.isTest ? "Testnet Blockchain" : network.isMijin ? "Mijin Private Blockchain" : "NEM Mainnet Public Blockchain";
+                var blockchain = network.isTest ? 'Testnet Blockchain' : network.isMijin ? 'Mijin Private Blockchain' : 'NEM Mainnet Public Blockchain';
                 var botReadWallet = self.blockchain_.getBotReadWallet();
                 var botSignWallet = self.blockchain_.getBotSignWallet();
                 var botTipperWallet = self.blockchain_.getBotTipperWallet();
                 var currentBotMode = self.config_.bot.mode;
                 var botLabel = self.config_.bot.name;
 
-                console.log("------------------------------------------------------------------------");
-                console.log("--                       NEM Bot by eVias                             --");
-                console.log("------------------------------------------------------------------------");
-                console.log("-");
-                console.log("- NEM Bot Server listening on Port %d in %s mode", this.address().port, self.environment_);
-                console.log("- NEM Bot is using blockchain: " + blockchain);
-                console.log("- NEM Bot Listens to Wallet: " + botReadWallet);
-                console.log("- NEM Bot Co-Signs with Wallet: " + botSignWallet);
-                console.log("- NEM Bot Tips with Wallet: " + botTipperWallet);
-                console.log("-");
-                console.log("- NEMBot Name is " + botLabel + " with Features: ");
+                console.log('------------------------------------------------------------------------');
+                console.log('--                       NEM Bot by eVias                             --');
+                console.log('------------------------------------------------------------------------');
+                console.log('-');
+                console.log('- NEM Bot Server listening on Port %d in %s mode', this.address().port, self.environment_);
+                console.log('- NEM Bot is using blockchain: ' + blockchain);
+                console.log('- NEM Bot Listens to Wallet: ' + botReadWallet);
+                console.log('- NEM Bot Co-Signs with Wallet: ' + botSignWallet);
+                console.log('- NEM Bot Tips with Wallet: ' + botTipperWallet);
+                console.log('-');
+                console.log('- NEMBot Name is ' + botLabel + ' with Features: ');
 
                 var features = {
-                    "read": [
-                        "Payment Reception Listening (Payment Processor)",
-                        "Balance Modifications Listening (Payment Processor)",
-                        "Multi Signature Accounts Co-Signatory Auditing"
+                    'read': [
+                        'Payment Reception Listening (Payment Processor)',
+                        'Balance Modifications Listening (Payment Processor)',
+                        'Multi Signature Accounts Co-Signatory Auditing'
                     ],
-                    "sign": ["Multi Signature Transaction Co-Signing"],
-                    "tip": [
-                        "Reddit Tip Bot",
-                        "Telegram Tip Bot",
-                        "NEM Forum Tip Bot"
+                    'sign': ['Multi Signature Transaction Co-Signing'],
+                    'tip': [
+                        'Reddit Tip Bot',
+                        'Telegram Tip Bot',
+                        'NEM Forum Tip Bot'
                     ]
                 };
-                var grnFeature = "\t\u001b[32mYES\u001b[0m\t";
-                var redFeature = "\t\u001b[31mNO\u001b[0m\t";
+                var grnFeature = '\t\u001b[32mYES\u001b[0m\t';
+                var redFeature = '\t\u001b[31mNO\u001b[0m\t';
 
                 for (var i in features.read)
                     console.log((self.blockchain_.isReadBot() ? grnFeature : redFeature) + features.read[i]);
@@ -193,8 +193,8 @@
                 for (var i in features.tip)
                     console.log((self.blockchain_.isTipperBot() ? grnFeature : redFeature) + features.tip[i]);
 
-                console.log("-");
-                console.log("------------------------------------------------------------------------");
+                console.log('-');
+                console.log('------------------------------------------------------------------------');
             });
         };
 
@@ -233,10 +233,10 @@
             }
 
             io.sockets.on('connection', function(botSocket) {
-                logger.info("[BOT] [" + botSocket.id + "]", __line, 'nembot()');
+                logger.info('[BOT] [' + botSocket.id + ']', __line, 'nembot()');
                 backends_connected_[botSocket.id] = botSocket;
 
-                // NEMBot "read" features:
+                // NEMBot 'read' features:
                 // - Payment Processor: Listening to Payment Updates
                 //     - Payment Channels are database entries linking Blockchain transactions
                 //       with specific Payment Messages and Sender XEM addresses.
@@ -247,7 +247,7 @@
                 }
 
                 botSocket.on('nembot_disconnect', function() {
-                    logger.info("[BOT] [" + botSocket.id + "]", __line, '~nembot()');
+                    logger.info('[BOT] [' + botSocket.id + ']', __line, '~nembot()');
 
                     if (backends_connected_.hasOwnProperty(botSocket.id))
                         delete backends_connected_[botSocket.id];
@@ -278,12 +278,12 @@
         };
 
         /**
-         * This method should be called only if the NEMBot has "read" features enabled.
+         * This method should be called only if the NEMBot has 'read' features enabled.
          *
-         * It will register a Websocket Event Listener for the event "nembot_open_payment_channel".
+         * It will register a Websocket Event Listener for the event 'nembot_open_payment_channel'.
          *
          * When the event ```nembot_open_payment_channel``` is triggered, the Blockchain Read Service
-         * is used to initiate a "Payment Processor Listening" which will identify Transactions on
+         * is used to initiate a 'Payment Processor Listening' which will identify Transactions on
          * the NEM Blockchain containing a given ```sender``` and ```message```.
          *
          * @param  {socket.io} botSocket [description]
@@ -296,14 +296,14 @@
             botSocket.on('nembot_open_payment_channel', function(channelOpts) {
                 //XXX validate input .sender, .recipient, .message, .amount
 
-                logger.info("[BOT] [" + botSocket.id + "]", __line, 'open_channel(' + channelOpts + ')');
+                logger.info('[BOT] [' + botSocket.id + ']', __line, 'open_channel(' + channelOpts + ')');
 
                 var params = JSON.parse(channelOpts);
 
                 var channelQuery = {
-                    "payerXEM": params.sender,
-                    "recipientXEM": params.recipient,
-                    "message": params.message
+                    'payerXEM': params.sender,
+                    'recipientXEM': params.recipient,
+                    'message': params.message
                 };
 
                 // join the socket IO room for the given payment channel message (invoice number)
@@ -330,7 +330,7 @@
                             amount: params.amount,
                             amountPaid: 0,
                             amountUnconfirmed: 0,
-                            status: "created",
+                            status: 'created',
                             isPaid: false,
                             createdAt: new Date().valueOf()
                         });
@@ -341,7 +341,7 @@
                                 .forwardPaymentUpdates(botSocket, paymentChannel, { duration: params.maxDuration });
                         });
                     } else {
-                        logger.error("[BOT] [" + botSocket.id + "]", __line, "NEMPaymentChannel model Error: " + err);
+                        logger.error('[BOT] [' + botSocket.id + ']', __line, 'NEMPaymentChannel model Error: ' + err);
                     }
                 });
             });

@@ -18,7 +18,7 @@
 (function() {
 
     var mongoose = require('mongoose');
-    var increment = require("mongoose-increment");
+    var increment = require('mongoose-increment');
 
     /**
      * class NEMBotDB connects to a mongoDB database
@@ -40,22 +40,22 @@
             var d = new Date();
             console.log(
                 '[' + String(d).substr(0, 15) + ' ' + d.toLocaleTimeString() + ']\t' +
-                "\u001b[32mINFO\u001b[0m" + '\t' + filename + '\t' + description);
+                '\u001b[32mINFO\u001b[0m' + '\t' + filename + '\t' + description);
         };
 
         var dbError = function(filename, line, description) {
             var d = new Date();
             console.log(
                 '[' + String(d).substr(0, 15) + ' ' + d.toLocaleTimeString() + ']\t' +
-                "\u001b[31mERROR\u001b[0m" + '\t' + filename + '\t:' + line + '\t' + description);
+                '\u001b[31mERROR\u001b[0m' + '\t' + filename + '\t:' + line + '\t' + description);
         };
 
-        host = process.env['MONGODB_URI'] || process.env['MONGOLAB_URI'] || config.bot.db.uri || "mongodb://localhost/NEMBotDB";
+        host = process.env['MONGODB_URI'] || process.env['MONGOLAB_URI'] || config.bot.db.uri || 'mongodb://localhost/NEMBotDB';
         this.dbms_.connect(host, function(err, res) {
             if (err)
-                console.log("ERROR with NEMBotDB DB (" + host + "): " + err);
+                console.log('ERROR with NEMBotDB DB (' + host + '): ' + err);
             else
-                console.log("NEMBotDB Database connection is now up with " + host);
+                console.log('NEMBotDB Database connection is now up with ' + host);
         });
 
         this.NEMPaymentChannel_ = new this.dbms_.Schema({
@@ -73,7 +73,7 @@
             hasPayment: { type: Boolean, default: false },
             isPaid: { type: Boolean, default: false },
             paidAt: { type: Number, min: 0 },
-            mosaicSlug: { type: String, default: "nem:xem" },
+            mosaicSlug: { type: String, default: 'nem:xem' },
             createdAt: { type: Number, min: 0 },
             updatedAt: { type: Number, min: 0 }
         });
@@ -92,21 +92,21 @@
                 };
             },
             getPayer: function() {
-                return this.payerXEM.replace(/-/g, "");
+                return this.payerXEM.replace(/-/g, '');
             },
             getRecipient: function() {
-                return this.recipientXEM.replace(/-/g, "");
+                return this.recipientXEM.replace(/-/g, '');
             },
             getQRData: function() {
                 // data for QR code generation
                 var invoiceData = {
-                    "v": blockchain_.getNetwork().isTest ? 1 : 2,
-                    "type": 2,
-                    "data": {
-                        "addr": this.recipientXEM,
-                        "amount": this.amount,
-                        "msg": this.message,
-                        "name": "NEMBot Payment " + this.message
+                    'v': blockchain_.getNetwork().isTest ? 1 : 2,
+                    'type': 2,
+                    'data': {
+                        'addr': this.recipientXEM,
+                        'amount': this.amount,
+                        'msg': this.message,
+                        'name': 'NEMBot Payment ' + this.message
                     }
                 };
 
@@ -182,7 +182,7 @@
                 var trxHash = chainDataLayer.getTransactionHash(transactionMetaDataPair);
 
                 // first try to load the channel by transaction hash
-                var model = mongoose.model("NEMPaymentChannel");
+                var model = mongoose.model('NEMPaymentChannel');
                 if (transaction.message && transaction.message.type === 1) {
                     // channel not found by Transaction Hash
                     // try to load the channel by transaction message
@@ -190,7 +190,7 @@
                     // message available, build it from payload and try loading a channel.
                     var plain = chainDataLayer.getTransactionMessage(transactionMetaDataPair);
 
-                    // DEBUG dbLog("[NEM] [DEBUG]", __line, "Found transaction with message '" + plain + "': " + trxHash);
+                    // DEBUG dbLog('[NEM] [DEBUG]', __line, 'Found transaction with message '' + plain + '': ' + trxHash);
 
                     model.findOne({ message: plain.toUpperCase(), recipientXEM: recipient }, function(err, channel) {
                         if (!err && channel) {
@@ -254,34 +254,34 @@
                 // is needed.
                 //XXX
 
-                // now "acknowledging" transaction: this means we will save the transaction amount
+                // now 'acknowledging' transaction: this means we will save the transaction amount
                 // in the field corresponding to the given status. the unconfirmed amount cannot be trusted.
                 // Firstly, because it represents an unconfirmed amount on the blockchain.
                 // Secondly, because the websocket sometimes doesn't catch unconfirmed transactions and the
                 // fallback works only for confirmed transactions!
 
-                if ("confirmed" == status) {
+                if ('confirmed' == status) {
                     channel.amountPaid += transaction.amount;
 
                     if (channel.unconfirmedHashes && channel.unconfirmedHashes.hasOwnProperty(trxHash)) {
-                        // only delete from "unconfirmed" if it was saved to it.
+                        // only delete from 'unconfirmed' if it was saved to it.
                         delete channel.unconfirmedHashes[trxHash];
                         channel.amountUnconfirmed -= transaction.amount;
                     }
 
-                    channel.status = "paid_partly";
+                    channel.status = 'paid_partly';
                     if (channel.amount <= channel.amountPaid) {
                         // channel is now PAID - can be closed.
-                        channel.status = "paid";
+                        channel.status = 'paid';
                         channel.isPaid = true;
                         channel.paidAt = new Date().valueOf();
                     }
 
                     channel.transactionHashes = channel.addTransaction(transactionMetaDataPair);
                     channel.hasPayment = true;
-                } else if ("unconfirmed" == status) {
+                } else if ('unconfirmed' == status) {
                     channel.amountUnconfirmed += transaction.amount;
-                    channel.status = "unconfirmed";
+                    channel.status = 'unconfirmed';
 
                     channel.unconfirmedHashes = channel.addUnconfirmed(transactionMetaDataPair);
                 }
@@ -319,10 +319,10 @@
         });
 
         // bind our Models classes
-        this.NEMPaymentChannel = this.dbms_.model("NEMPaymentChannel", this.NEMPaymentChannel_);
-        this.NEMSignedTransaction = this.dbms_.model("NEMSignedTransaction_", this.NEMSignedTransaction_);
-        this.NEMTransactionPool = this.dbms_.model("NEMTransactionPool", this.NEMTransactionPool_);
-        this.NEMBlockHeight = this.dbms_.model("NEMBlockHeight", this.NEMBlockHeight_);
+        this.NEMPaymentChannel = this.dbms_.model('NEMPaymentChannel', this.NEMPaymentChannel_);
+        this.NEMSignedTransaction = this.dbms_.model('NEMSignedTransaction_', this.NEMSignedTransaction_);
+        this.NEMTransactionPool = this.dbms_.model('NEMTransactionPool', this.NEMTransactionPool_);
+        this.NEMBlockHeight = this.dbms_.model('NEMBlockHeight', this.NEMBlockHeight_);
     };
 
     module.exports.NEMBotDB = NEMBotDB;

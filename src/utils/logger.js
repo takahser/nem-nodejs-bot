@@ -46,16 +46,16 @@ var log = function(tag, filename, line, description) {
 };
 
 var debug = function(filename, line, description) {
-	log("\u001b[36mDEBUG\u001b[0m", filename, line, description);
+	log('\u001b[36mDEBUG\u001b[0m', filename, line, description);
 };
 var info = function(filename, line, description) {
-	log("\u001b[32mINFO\u001b[0m", filename, line, description);
+	log('\u001b[32mINFO\u001b[0m', filename, line, description);
 };
 var warn = function(filename, line, description) {
-	log("\u001b[33mWARN", filename, line, description + "\u001b[0m");
+	log('\u001b[33mWARN', filename, line, description + '\u001b[0m');
 };
 var error = function(filename, line, description) {
-	log("\u001b[31mERROR", filename, line, description + "\u001b[0m");
+	log('\u001b[31mERROR', filename, line, description + '\u001b[0m');
 };
 
 module.exports.debug = debug;

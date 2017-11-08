@@ -17,11 +17,11 @@
  */
 
 var path = require('path'),
-	SecureConf = require("secure-conf"),
-    fs = require("fs"),
-    pw = require("pw");
+	SecureConf = require('secure-conf'),
+    fs = require('fs'),
+    pw = require('pw');
 
-var environment = process.env["APP_ENV"] || "development";
+var environment = process.env['APP_ENV'] || 'development';
 
 // core dependencies
 var logger = require('./src/utils/logger.js');
@@ -31,20 +31,20 @@ var __smartfilename = path.basename(__filename);
 var sconf = new SecureConf();
 var encryptConfig = function(pass)
 {
-	var dec = fs.readFileSync("config/bot.json");
+	var dec = fs.readFileSync('config/bot.json');
 	var enc = sconf.encryptContent(dec, pass);
 
 	if (enc === undefined) {
-		logger.error(__smartfilename, __line, "Configuration file config/bot.json could not be encrypted.");
-		logger.warn(__smartfilename, __line, "NEM Bot now aborting.");
+		logger.error(__smartfilename, __line, 'Configuration file config/bot.json could not be encrypted.');
+		logger.warn(__smartfilename, __line, 'NEM Bot now aborting.');
 		return false;
 	}
 
-	fs.writeFileSync("config/bot.json.enc", enc);
+	fs.writeFileSync('config/bot.json.enc', enc);
 
-	if (environment == "production")
+	if (environment == 'production')
 		// don't delete in development mode
-		fs.unlink("config/bot.json");
+		fs.unlink('config/bot.json');
 
 	return true;
 };
@@ -55,28 +55,28 @@ var encryptConfig = function(pass)
  * decrypted with the provided password (or asks password in console.)
  *
  * On heroku, as it is not possible to enter data in the console, the password
- * must be set in the ENCRYPT_PASS "Config Variable" of your Heroku app which
- * you can set under the "Settings" tab.
+ * must be set in the ENCRYPT_PASS 'Config Variable' of your Heroku app which
+ * you can set under the 'Settings' tab.
  */
 var startBot = function(pass)
 {
-	if (fs.existsSync("config/bot.json.enc")) {
+	if (fs.existsSync('config/bot.json.enc')) {
 		// Only start the bot in case the file is found
 		// and can be decrypted.
 
-		var enc = fs.readFileSync("config/bot.json.enc", {encoding: "utf8"});
+		var enc = fs.readFileSync('config/bot.json.enc', {encoding: 'utf8'});
 		var dec = sconf.decryptContent(enc, pass);
 
 		if (dec === undefined) {
-			logger.error(__smartfilename, __line, "Configuration file config/bot.json could not be decrypted.");
-			logger.warn(__smartfilename, __line, "NEM Bot now aborting.");
+			logger.error(__smartfilename, __line, 'Configuration file config/bot.json could not be decrypted.');
+			logger.warn(__smartfilename, __line, 'NEM Bot now aborting.');
 		}
 		else {
 			try {
 				var config = JSON.parse(dec);
 
 				try {
-					var server = require("./src/server.js");
+					var server = require('./src/server.js');
 
 					// define a helper to get the blockchain service
 					var blockchain = require('./src/blockchain/service.js');
@@ -85,13 +85,13 @@ var startBot = function(pass)
 					var bot = new server.NEMBot(config, logger, chainDataLayer);
 				}
 				catch (e) {
-					logger.error(__smartfilename, __line, "Error with NEM Bot Server: " + e);
-					logger.warn(__smartfilename, __line, "NEM Bot now aborting.");
+					logger.error(__smartfilename, __line, 'Error with NEM Bot Server: ' + e);
+					logger.warn(__smartfilename, __line, 'NEM Bot now aborting.');
 				}
 			}
 			catch (e) {
-				logger.error(__smartfilename, __line, "Error with NEM Bot configuration. Invalid encryption password: " + e);
-				logger.warn(__smartfilename, __line, "NEM Bot now aborting.");
+				logger.error(__smartfilename, __line, 'Error with NEM Bot configuration. Invalid encryption password: ' + e);
+				logger.warn(__smartfilename, __line, 'NEM Bot now aborting.');
 			}
 		}
 	}
@@ -104,15 +104,15 @@ var startBot = function(pass)
  * In case the configuration file is not encrypted yet, it will be encrypted
  * and the original file will be deleted.
  */
-var pass  = process.env["ENCRYPT_PASS"] || "";
+var pass  = process.env['ENCRYPT_PASS'] || '';
 
 if (typeof pass == 'undefined' || ! pass.length) {
 	// get enc-/dec-rypt password from console
 
-	if (! fs.existsSync("config/bot.json.enc")) {
+	if (! fs.existsSync('config/bot.json.enc')) {
 		// encrypted configuration file not yet created
 
-		console.log("Please enter a password for your NEMBot (and save it somewhere safe): ");
+		console.log('Please enter a password for your NEMBot (and save it somewhere safe): ');
 		pw(function(password) {
 			encryptConfig(password);
 			startBot(password);
@@ -121,7 +121,7 @@ if (typeof pass == 'undefined' || ! pass.length) {
 	else {
 		// encrypted file exists, ask password for decryption
 
-		console.log("Please enter your NEMBot's password: ");
+		console.log('Please enter your NEMBot's password: ');
 		pw(function(password) {
 			startBot(password);
 		});
@@ -130,7 +130,7 @@ if (typeof pass == 'undefined' || ! pass.length) {
 else {
 	// use environment variable password
 
-	if (! fs.existsSync("config/bot.json.enc"))
+	if (! fs.existsSync('config/bot.json.enc'))
 		// encrypted file must be created
 		encryptConfig(pass);
 
