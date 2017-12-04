@@ -96,7 +96,7 @@ configuration field:
     - bot.sign.multisigAddress : Type: text. XEM Address of the Multi Signature Account of which this Bot is a Co-Signatory.
     - bot.sign.cosignatory.walletAddress : Type: text. XEM Address of the Account to **use** for Co-Signing Multi Signature Transactions.
         - overwrite with environment variable BOT_SIGN_WALLET
-    - bot.sign.cosignatory.privateKey : Type: text. Private Key of the Account to **use** for Co-Signing Multi Signature Transactions. (Should be the Private Key of the Account ```bot.sign.walletAddress```).
+    - bot.sign.cosignatory.privateKey : Type: text. Private Key of the Account to **use** for Co-Signing Multi Signature Transactions. (Should be the Private Key of the Account ```bot.sign.cosignatory.walletAddress```).
     - bot.sign.cosignatory.acceptFrom : Type: text. Public Key of accounts from which we will accept unconfirmed transactions.
     - bot.sign.dailyMaxAmount : Type: number. Maximum amount of Micro XEM to allow in co-signer mode.
     - bot.sign.onlyTransfers : Type: boolean. Whether to sign other transaction than Transfer *not yet implemented*
